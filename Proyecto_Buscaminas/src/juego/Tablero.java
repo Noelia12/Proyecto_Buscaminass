@@ -21,7 +21,7 @@ import javafx.stage.StageStyle;
 
 public class Tablero {
 
-    private static int divisor = 50;//define tamaño de celdas
+    private static int divisor = 50;//define tamaÃ±o de celdas
     private static final int ancho = 1000;// ancho del root
     private static final int alto = 800;// altura del root
 
@@ -65,7 +65,7 @@ public class Tablero {
     private List<celd> getVecinos(celd celdasv) {
         List<celd> vecinos = new ArrayList<>();
 
-        int[] coordenadas = new int[] {-1, -1,-1, 0,-1, 1, 0, -1, 0, 1, 1, -1,1, 0, 1, 1 };
+        int[] coordenadas = new int[] {-1, -1,-1, 0,-1, 1, 0, -1, 0, 1, 1, -1, 1, 0, 1, 1 };
 
         for (int i = 0; i < coordenadas.length; i++) {
             int dx = coordenadas[i];
@@ -87,9 +87,9 @@ public class Tablero {
         private int x, y;
         private boolean conmina;
         private boolean isOpen = false;
-
-        private Rectangle rect = new Rectangle(divisor-3, divisor-3);//tamaño de las celdas
+        private Rectangle rect = new Rectangle(divisor-3, divisor-3);//tamaÃ±o de las celdas
         private Text text = new Text();
+        private Text band = new Text();
         public Alert mensaje = new Alert(AlertType.CONFIRMATION);
     
 
@@ -97,57 +97,59 @@ public class Tablero {
             this.x = x;
             this.y = y;
             this.conmina = conmina;
-            
             rect.setFill(Color.LIGHTSEAGREEN);
             rect.setStroke(Color.RED);
             mensaje.setTitle("BUSCAMINAS");
             mensaje.setHeaderText(null);
             mensaje.initStyle(StageStyle.UTILITY);
-            mensaje.setContentText("perdiste!!\n¿Quieres intentarlo de nuevo ?");
+            mensaje.setContentText("perdiste!!\nÂ¿Quieres intentarlo de nuevo ?");
             text.setFont(Font.font(25));
             text.setText(conmina ? "X" : "");
             text.setFill(Color.DODGERBLUE);
             text.setVisible(false);
-  
-            getChildren().addAll(text,rect);
-
+            band.setFont(Font.font(40));
+            band.setText("X");
+            band.setFill(Color.RED);
+            band.setVisible(false);
+            getChildren().addAll(text,rect, band);
             setTranslateX(x * divisor);
             setTranslateY(y * divisor);
-
             setOnMouseClicked(e -> open(e));
         }
         public void open(MouseEvent e) {
-            if (isOpen)
-                return;
             if(e.getButton().name().equals("PRIMARY")) {
-            	
-
+            	isOpen=true;
             	System.out.println("Click izquierdo");
-            }
-            if(e.getButton().name().equals("SECONDARY")) {
-            	System.out.println("Click derecho");
             
-            }
-            if (conmina) {
-            	Optional<ButtonType>result=mensaje.showAndWait();
-            	if(result.get()==ButtonType.CANCEL) {
-            		System.exit(0);
-            	}else if (result.get()==ButtonType.OK) {
-            		 scene.setRoot(crearcontenido());
-            	}
-
-               return;
-            }
-            isOpen = true;
-            text.setVisible(true);
-            rect.setFill(null);
-            if (text.getText().isEmpty()) {
-                List<celd> lista = getVecinos(this);
-                for(int i = 0; i < lista.size(); i++) {
-                	lista.get(i).open(e);
+            	if (conmina) {
+                	Optional<ButtonType>result=mensaje.showAndWait();
+                	if(result.get()==ButtonType.CANCEL) {
+                		System.exit(0);
+                	}else if (result.get()==ButtonType.OK) {	
+                		 scene.setRoot(crearcontenido());
+                	}
+                   return;
+                }
+                isOpen = true;
+                text.setVisible(true);
+                rect.setFill(null);
+                if (text.getText().isEmpty()) {
+                    List<celd> lista = getVecinos(this);
+                    for(int i = 0; i < lista.size(); i++) {
+                    	lista.get(i).open(e);
+                    }
                 }
             }
+            if(e.getButton().name().equals("SECONDARY")) {
+            	
+            	isOpen=false;
+            	System.out.println("Click derecho");
+            	band.setVisible(true);
+            }
+            
         }
     }
 }
+
+
 
