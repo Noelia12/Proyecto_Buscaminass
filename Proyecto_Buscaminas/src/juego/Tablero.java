@@ -2,154 +2,93 @@ package juego;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-
 import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonType;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
+
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.stage.StageStyle;
 
 
 public class Tablero {
 
-    private static int divisor = 50;//define tamaño de celdas
-    private static final int ancho = 1000;// ancho del root
-    private static final int alto = 800;// altura del root
+	protected static int divisor = 200;// define tamaño de celdas
+	protected static final int ancho = 1000;// ancho del root
+	protected static final int alto = 800;// altura del root
 
-    private static  int filas = ancho / divisor;//celdas en x
-    private static  int columnas = alto/ divisor;//celdas en y
-    private celd[][] rejilla = new celd[filas][columnas];
-    private Scene scene;
-    
-    public Tablero() {
-    }
+	protected static int filas = ancho / divisor;// celdas en x
+	protected static int columnas = alto / divisor;// celdas en y
+	protected static Celd[][] rejilla = new Celd[filas][columnas];
 
-    public Parent crearcontenido() {
-        Pane contenedor = new Pane();
-        contenedor.setPrefSize(ancho, alto);
+	static int espacio = 1;
+	boolean numrand;
 
-        for (int y = 0; y < columnas; y++) {
-            for (int x = 0; x < filas; x++) {
-                celd celda = new celd(x, y, Math.random() < 0.2);
-                rejilla[x][y] = celda;
-                contenedor.getChildren().add(celda);
-            }
-        }
+	double[] vector = null;
+	Text minas;
+	protected Celd celda;
 
-        for (int y = 0; y < columnas; y++) {
-            for (int x = 0; x < filas; x++) {
-                celd celda = rejilla[x][y];
+	public Tablero() {
+	}
 
-                if (celda.conmina)
-                    continue;
+	public Parent crearcontenido() {
+		Pane contenedor = new Pane();
+		contenedor.setPrefSize(ancho, alto);
 
-                long mina = getVecinos(celda).stream().filter(t -> t.conmina).count();
+		for (int y = 0; y < columnas; y++) {
+			for (int x = 0; x < filas; x++) {
+				numrand = Math.random() < 0.2;
+				
+				 celda = new Celd (x, y,numrand);
+				rejilla[x][y] = celda;
+				 if (numrand == true) {
 
-                if (mina > 0)
-                    celda.text.setText(String.valueOf(mina));
-            }
-        }
+						vector = new double[espacio];
+						++espacio;
+					}
+				contenedor.getChildren().add(celda);
+			}
+		}   
+		minas = new Text("hay "+vector.length+" minas");
+		minas.setFont(Font.font(20));
+		minas.setTranslateX(20);
+		minas.setTranslateY(20);
+		contenedor.getChildren().add(minas);
 
-        return contenedor;
-    }
+		for (int y = 0; y < columnas; y++) {
+			for (int x = 0; x < filas; x++) {
+				Celd celda = rejilla[x][y];
 
-    private List<celd> getVecinos(celd celdasv) {
-        List<celd> vecinos = new ArrayList<>();
+				if (celda.conmina)
+					continue;
 
-        int[] coordenadas = new int[] {-1, -1,-1, 0,-1, 1, 0, -1, 0, 1, 1, -1, 1, 0, 1, 1 };
+				long mina = getVecinos(celda).stream().filter(t -> t.conmina).count();
 
-        for (int i = 0; i < coordenadas.length; i++) {
-            int dx = coordenadas[i];
-            int dy = coordenadas[++i];
+				if (mina > 0)
+					celda.text.setText(String.valueOf(mina));
+			}
+		}
 
-            int nuevoX = celdasv.x + dx;
-            int nuevoY = celdasv.y + dy;
+		return contenedor;
+	}
 
-            if (nuevoX >= 0 && nuevoX < filas
-                    && nuevoY >= 0 && nuevoY < columnas) {
-                vecinos.add(rejilla[nuevoX][nuevoY]);
-            }
-        }
+	protected static List<Celd> getVecinos(Celd celdasv) {
+		List<Celd> vecinos = new ArrayList<>();
 
-        return vecinos;
-    }
+		int[] coordenadas = new int[] { -1, -1, -1, 0, -1, 1, 0, -1, 0, 1, 1, -1, 1, 0, 1, 1 };
 
-    private class celd extends StackPane {
-        private int x, y;
-        private boolean conmina;
-        private boolean isOpen = false;
-        private Rectangle rect = new Rectangle(divisor-3, divisor-3);//tamaño de las celdas
-        private Text text = new Text();
-        private Text band = new Text();
-        public Alert mensaje = new Alert(AlertType.CONFIRMATION);
-    
+		for (int i = 0; i < coordenadas.length; i++) {
+			int dx = coordenadas[i];
+			int dy = coordenadas[++i];
 
-        public celd(int x, int y, boolean conmina) {
-            this.x = x;
-            this.y = y;
-            this.conmina = conmina;
-            rect.setFill(Color.LIGHTSEAGREEN);
-            rect.setStroke(Color.RED);
-            mensaje.setTitle("BUSCAMINAS");
-            mensaje.setHeaderText(null);
-            mensaje.initStyle(StageStyle.UTILITY);
-            mensaje.setContentText("perdiste!!\n¿Quieres intentarlo de nuevo ?");
-            text.setFont(Font.font(25));
-            text.setText(conmina ? "X" : "");
-            text.setFill(Color.DODGERBLUE);
-            text.setVisible(false);
-            band.setFont(Font.font(40));
-            band.setText("X");
-            band.setFill(Color.RED);
-            band.setVisible(false);
-            getChildren().addAll(text,rect, band);
-            setTranslateX(x * divisor);
-            setTranslateY(y * divisor);
-            setOnMouseClicked(e -> open(e));
-        }
-        public void open(MouseEvent e) {
-            if(e.getButton().name().equals("PRIMARY")) {
-            	isOpen=true;
-            	System.out.println("Click izquierdo");
-            
-            	if (conmina) {
-                	Optional<ButtonType>result=mensaje.showAndWait();
-                	if(result.get()==ButtonType.CANCEL) {
-                		System.exit(0);
-                	}else if (result.get()==ButtonType.OK) {	
-                		 scene.setRoot(crearcontenido());
-                	}
-                   return;
-                }
-                isOpen = true;
-                text.setVisible(true);
-                rect.setFill(null);
-                if (text.getText().isEmpty()) {
-                    List<celd> lista = getVecinos(this);
-                    for(int i = 0; i < lista.size(); i++) {
-                    	lista.get(i).open(e);
-                    }
-                }
-            }
-            if(e.getButton().name().equals("SECONDARY")) {
-            	
-            	isOpen=false;
-            	System.out.println("Click derecho");
-            	band.setVisible(true);
-            }
-            
-        }
-    }
+			int nuevoX = celdasv.x + dx;
+			int nuevoY = celdasv.y + dy;
+
+			if (nuevoX >= 0 && nuevoX < filas && nuevoY >= 0 && nuevoY < columnas) {
+				vecinos.add(rejilla[nuevoX][nuevoY]);
+			}
+		}
+
+		return vecinos;
+	}
+
+
 }
-
-
-
